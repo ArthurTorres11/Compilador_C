@@ -1,40 +1,40 @@
-# Nome do executável final
+# Nome do executável
 TARGET = compilador
-
-# Compilador
 CC = gcc
 
-# Detecta automaticamente todas as subpastas dentro de src/ para incluir headers
-# Isso permite usar #include "lexico.h" mesmo ele estando em outra pasta
-SRC_DIRS = src $(wildcard src/*)
-INCLUDES = $(foreach dir, $(SRC_DIRS), -I$(dir))
 
-# Flags de compilação:
-# -Wall -Wextra: Avisos de segurança
-# -g: Debug
-# $(INCLUDES): Adiciona todas as pastas do src no caminho de busca
+INCLUDES = -Isrc -Isrc/lexico -Isrc/sintatico -Isrc/semantico -Isrc/gerador
+
+# Flags
 CFLAGS = -Wall -Wextra -g $(INCLUDES)
 
-# Diretório de build (objetos temporários)
+# Diretório de build
 BUILD_DIR = build
 
-# Encontra TODOS os arquivos .c recursivamente dentro de src e subpastas
-SRC_DIRS = $(shell find src -type d)
+# --- DEFINIÇÃO DOS ARQUIVOS FONTE (ABORDAGEM SEGURA) ---
+# 1. Pega o main.c na raiz do src
+SRCS_ROOT = $(wildcard src/*.c)
+# 2. Pega todos os .c dentro das subpastas (lexico, sintatico, semantico)
+SRCS_SUB = $(wildcard src/*/*.c)
 
-# Gera a lista de objetos (.o) mantendo a estrutura de pastas dentro de build/
+# Junta tudo
+SRCS = $(SRCS_ROOT) $(SRCS_SUB)
+
+# Cria a lista de objetos (.o) mantendo a estrutura de pastas
+# Ex: src/main.c vira build/src/main.o
 OBJS = $(SRCS:%.c=$(BUILD_DIR)/%.o)
 
-# Regra padrão
+# Regra Principal
 all: $(TARGET)
 
-# Linkagem final
+# Linkagem
 $(TARGET): $(OBJS)
 	@echo "Linkando executável..."
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(OBJS) -o $(BUILD_DIR)/$(TARGET)
-	@echo "✅ Sucesso! Executável criado em: $(BUILD_DIR)/$(TARGET)"
+	@echo "✅ Sucesso! Executável em: $(BUILD_DIR)/$(TARGET)"
 
-# Compilação de cada arquivo .c para .o
-# O comando mkdir -p garante que a pasta de destino exista
+# Compilação Genérica (Funciona para qualquer .c dentro de src ou subpastas)
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	@echo "Compilando $<..."
@@ -42,10 +42,9 @@ $(BUILD_DIR)/%.o: %.c
 
 # Limpeza
 clean:
-	@echo "Limpando arquivos temporários..."
 	rm -rf $(BUILD_DIR)
 
-# Executar
+# Rodar (ajuste o nome do arquivo de teste conforme sua necessidade)
 run: all
 	@echo "--- Executando ---"
-	./$(BUILD_DIR)/$(TARGET) testes/teste1.mlp
+	./$(BUILD_DIR)/$(TARGET) testes/erro_semantico.mlp
