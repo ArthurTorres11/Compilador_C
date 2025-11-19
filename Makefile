@@ -19,7 +19,7 @@ CFLAGS = -Wall -Wextra -g $(INCLUDES)
 BUILD_DIR = build
 
 # Encontra TODOS os arquivos .c recursivamente dentro de src e subpastas
-SRCS = $(shell find src -name '*.c')
+SRC_DIRS = $(shell find src -type d)
 
 # Gera a lista de objetos (.o) mantendo a estrutura de pastas dentro de build/
 OBJS = $(SRCS:%.c=$(BUILD_DIR)/%.o)
