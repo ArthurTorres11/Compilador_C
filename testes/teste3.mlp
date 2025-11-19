@@ -1,0 +1,14 @@
+$
+inteiro a, b, c;
+real resultado;
+
+a = 10;
+b = 20;
+c = 5;
+
+se (a < b) entao
+    resultado = (a + b) * c;
+senao
+    resultado = b / c;
+;
+$.

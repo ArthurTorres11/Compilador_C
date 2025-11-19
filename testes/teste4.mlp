@@ -1,0 +1,18 @@
+$
+inteiro i, j, total;
+i = 0;
+total = 0;
+
+enquanto (i < 3)
+    j = 0;
+    enquanto (j < 2)
+        se (i > j) entao
+            total = total + i;
+        senao
+            total = total + j;
+        ;
+        j = j + 1;
+    ;
+    i = i + 1;
+;
+$.

@@ -1,3 +1,4 @@
+/* src/semantico/semantico.c */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +13,6 @@ void inicializar_tabela() {
     qtd_simbolos = 0;
 }
 
-// Converte o token do léxico para o nosso tipo interno
 TipoVariavel converter_tipo(TipoToken t) {
     switch(t) {
         case TOKEN_INTEIRO: return TIPO_VAR_INTEIRO;
@@ -22,46 +22,74 @@ TipoVariavel converter_tipo(TipoToken t) {
     }
 }
 
-// Adiciona uma variável na tabela (Chamado na declaração)
+const char* tipo_para_string(TipoVariavel t) {
+    switch(t) {
+        case TIPO_VAR_INTEIRO: return "inteiro";
+        case TIPO_VAR_REAL: return "real";
+        case TIPO_VAR_CARACTER: return "caracter";
+        default: return "desconhecido";
+    }
+}
+
+// Adiciona e verifica duplicidade
 int adicionar_simbolo(char *nome, TipoToken tipo_token, int linha) {
-    // 1. Verifica se já existe (Erro semântico: redeclaração)
     if (buscar_simbolo(nome) != NULL) {
-        printf("ERRO SEMANTICO (Linha %d): Variavel '%s' ja foi declarada anteriormente.\n", linha, nome);
+        printf("ERRO SEMANTICO (Linha %d): Variavel '%s' ja declarada.\n", linha, nome);
         exit(1);
     }
-
     if (qtd_simbolos >= MAX_SIMBOLOS) {
         printf("ERRO: Tabela de simbolos cheia!\n");
         exit(1);
     }
-
     Simbolo *s = &tabela[qtd_simbolos++];
     strcpy(s->nome, nome);
     s->tipo = converter_tipo(tipo_token);
     s->linha_declaracao = linha;
     s->usada = 0;
-
-    // Debug opcional
-    // printf("DEBUG: Variavel '%s' declarada na linha %d.\n", nome, linha);
     return 1;
 }
 
-// Busca uma variável pelo nome
 Simbolo* buscar_simbolo(char *nome) {
     for (int i = 0; i < qtd_simbolos; i++) {
-        if (strcmp(tabela[i].nome, nome) == 0) {
-            return &tabela[i];
-        }
+        if (strcmp(tabela[i].nome, nome) == 0) return &tabela[i];
     }
     return NULL;
 }
 
-// Verifica se a variável existe (Chamado no uso)
 void verificar_uso_variavel(char *nome, int linha_uso) {
     Simbolo *s = buscar_simbolo(nome);
     if (s == NULL) {
-        printf("ERRO SEMANTICO (Linha %d): Variavel '%s' nao foi declarada.\n", linha_uso, nome);
+        printf("ERRO SEMANTICO (Linha %d): Variavel '%s' nao declarada.\n", linha_uso, nome);
         exit(1);
     }
     s->usada = 1;
+}
+
+//Verifica Compatibilidade de Tipos ---
+void verificar_tipo_atribuicao(char *nome, TipoToken tipo_expr, int linha) {
+    Simbolo *s = buscar_simbolo(nome);
+    if (!s) return; // Já tratado no verificar_uso
+
+    // Regra: Inteiro só aceita Inteiro (Real não cabe em Inteiro)
+    if (s->tipo == TIPO_VAR_INTEIRO && tipo_expr == TOKEN_NUM_REAL) {
+        printf("ERRO SEMANTICO (Linha %d): Atribuicao incompativel. Tentando atribuir REAL a INTEIRO '%s'.\n", linha, nome);
+        exit(1);
+    }
+    // Regra: Caracter só aceita Caracter
+
+}
+
+//Imprime a Tabela no Final
+void imprimir_tabela_simbolos() {
+    printf("\n=== TABELA DE SIMBOLOS ===\n");
+    printf("%-10s | %-10s | %-5s | %-5s\n", "NOME", "TIPO", "LINHA", "USADA");
+    printf("---------------------------------------------\n");
+    for (int i = 0; i < qtd_simbolos; i++) {
+        printf("%-10s | %-10s | %-5d | %-5s\n", 
+               tabela[i].nome, 
+               tipo_para_string(tabela[i].tipo), 
+               tabela[i].linha_declaracao,
+               tabela[i].usada ? "SIM" : "NAO");
+    }
+    printf("==========================\n");
 }

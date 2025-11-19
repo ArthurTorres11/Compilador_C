@@ -7,4 +7,5 @@ se (a < b) entao
     x = 2.5;
 senao
     x = 0.0;
+;
 $.
