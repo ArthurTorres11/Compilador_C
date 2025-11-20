@@ -1,5 +1,3 @@
-Aqui está o arquivo `README.md` completo e corrigido. Você pode copiar todo o conteúdo do bloco de código abaixo e salvar como `README.md` na raiz do seu projeto.
-
 ````markdown
 # Compilador MLP (Mini Linguagem Portugol)
 
@@ -16,12 +14,14 @@ Este projeto foi desenvolvido para rodar em ambiente Linux. Se você está no Wi
 ### Passo 1.1: Instalar o WSL e Ubuntu
 1. Abra o **PowerShell** como Administrador.
 2. Digite o comando:
-   ```powershell
+3.  Reinicie o computador quando solicitado.
+4.  Após reiniciar, o Ubuntu abrirá automaticamente. Crie seu usuário e senha UNIX.
+
+```
    wsl --install
 ````
 
-3.  Reinicie o computador quando solicitado.
-4.  Após reiniciar, o Ubuntu abrirá automaticamente. Crie seu usuário e senha UNIX.
+
 
 ### Passo 1.2: Instalar Compiladores e Ferramentas
 
@@ -201,7 +201,7 @@ Conforme os requisitos do projeto, foram desenvolvidos e validados **4 programas
 ## ✒️ Autores
 
 Projeto desenvolvido para a disciplina de Construção de Compiladores.
-* **Arthur Torres** *
+* **Arthur Torres** 
   * **Data:** Novembro/2025
 
 
