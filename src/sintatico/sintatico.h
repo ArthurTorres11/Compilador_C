@@ -1,7 +1,6 @@
 #ifndef SINTATICO_H
 #define SINTATICO_H
 
-// Retorna 1 se a análise for bem sucedida, 0 se houver erro
-int analise_sintatica(char *nome_arquivo);
+int analise_sintatica(char *nome_arquivo, char *nome_saida_dot);
 
 #endif
