@@ -1,0 +1,12 @@
+$
+inteiro i, max;
+i = 0;
+max = 10;
+
+enquanto (i < max OR i == max)
+    se (i > 5 E i != 8) entao
+        max = max - 1;
+    ;
+    i = i + 1;
+;
+$.

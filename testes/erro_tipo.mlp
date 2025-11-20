@@ -1,0 +1,8 @@
+$
+inteiro a;
+real b;
+a = 10;
+b = 20.5;
+
+a = b;  <-- ERRO: Tentando colocar Real em Inteiro
+$.

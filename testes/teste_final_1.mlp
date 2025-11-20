@@ -1,0 +1,14 @@
+$
+inteiro a, b;
+real x;
+
+a = 10;
+b = 20;
+x = 5.5;
+
+se (a < b) entao
+    x = x + 1.0;
+senao
+    x = x - 1.0;
+;
+$.

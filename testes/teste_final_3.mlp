@@ -1,0 +1,19 @@
+$
+caracter letra;
+inteiro val, res;
+
+letra = 'X';
+val = 100;
+
+res = val * 2;
+res = res / 4;
+res = res RESTO 3;
+
+se (NOT (val <= 0)) entao
+    val = 0;
+;
+
+se (val >= 0) entao
+    val = 1;
+;
+$.
