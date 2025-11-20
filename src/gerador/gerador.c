@@ -7,8 +7,8 @@
 
 static Instrucao codigo[MAX_CODE];
 static int pos_codigo = 0;
-static int cont_reg = 0;   // Contador de registradores (R1, R2...)
-static int cont_label = 0; // Contador de labels (L1, L2...)
+static int cont_reg = 0;   
+static int cont_label = 0; 
 
 void inicializar_gerador() {
     pos_codigo = 0;
