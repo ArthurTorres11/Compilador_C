@@ -1,11 +1,10 @@
-````markdown
 # Compilador MLP (Mini Linguagem Portugol)
 
 Este projeto consiste na implementação completa de um compilador para a linguagem **MLP** (Mini Linguagem Portugol). O sistema realiza todas as etapas de compilação: Análise Léxica, Sintática (Descendente Recursiva), Semântica (Tipagem e Escopo) e Geração de Código Intermediário (TAC - Three Address Code).
 
 Além disso, o compilador gera uma visualização gráfica da **Árvore Sintática Abstrata (AST)** utilizando a linguagem DOT (Graphviz).
 
----
+
 
 ## 🚀 1. Preparação do Ambiente (Windows + WSL)
 
