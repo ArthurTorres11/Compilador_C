@@ -21,8 +21,9 @@ void inicializar_tabela();
 int adicionar_simbolo(char *nome, TipoToken tipo_token, int linha);
 Simbolo* buscar_simbolo(char *nome);
 void verificar_uso_variavel(char *nome, int linha_uso);
-
-// Função para exibir a tabela 
 void imprimir_tabela_simbolos();
+
+TipoVariavel obter_tipo_simbolo(char *nome);
+const char* tipo_para_string(TipoVariavel t); 
 
 #endif

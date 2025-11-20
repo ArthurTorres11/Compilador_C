@@ -1,4 +1,3 @@
-/* src/semantico/semantico.c */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,10 +30,9 @@ const char* tipo_para_string(TipoVariavel t) {
     }
 }
 
-// Adiciona e verifica duplicidade
 int adicionar_simbolo(char *nome, TipoToken tipo_token, int linha) {
     if (buscar_simbolo(nome) != NULL) {
-        printf("ERRO SEMANTICO (Linha %d): Variavel '%s' ja declarada.\n", linha, nome);
+        printf("ERRO SEMANTICO [COD. 21] (Linha %d): Variavel '%s' ja declarada.\n", linha, nome);
         exit(1);
     }
     if (qtd_simbolos >= MAX_SIMBOLOS) {
@@ -59,27 +57,18 @@ Simbolo* buscar_simbolo(char *nome) {
 void verificar_uso_variavel(char *nome, int linha_uso) {
     Simbolo *s = buscar_simbolo(nome);
     if (s == NULL) {
-        printf("ERRO SEMANTICO (Linha %d): Variavel '%s' nao declarada.\n", linha_uso, nome);
+        printf("ERRO SEMANTICO [COD. 20] (Linha %d): Variavel '%s' nao declarada.\n", linha_uso, nome);
         exit(1);
     }
     s->usada = 1;
 }
 
-//Verifica Compatibilidade de Tipos ---
-void verificar_tipo_atribuicao(char *nome, TipoToken tipo_expr, int linha) {
+TipoVariavel obter_tipo_simbolo(char *nome) {
     Simbolo *s = buscar_simbolo(nome);
-    if (!s) return; // Já tratado no verificar_uso
-
-    // Regra: Inteiro só aceita Inteiro (Real não cabe em Inteiro)
-    if (s->tipo == TIPO_VAR_INTEIRO && tipo_expr == TOKEN_NUM_REAL) {
-        printf("ERRO SEMANTICO (Linha %d): Atribuicao incompativel. Tentando atribuir REAL a INTEIRO '%s'.\n", linha, nome);
-        exit(1);
-    }
-    // Regra: Caracter só aceita Caracter
-
+    if (s) return s->tipo;
+    return TIPO_VAR_DESCONHECIDO;
 }
 
-//Imprime a Tabela no Final
 void imprimir_tabela_simbolos() {
     printf("\n=== TABELA DE SIMBOLOS ===\n");
     printf("%-10s | %-10s | %-5s | %-5s\n", "NOME", "TIPO", "LINHA", "USADA");
