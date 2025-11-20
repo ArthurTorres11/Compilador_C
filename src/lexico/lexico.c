@@ -4,13 +4,22 @@
 #include <ctype.h>
 #include "lexico.h"
 
-// Variáveis globais internas
+/*
+ * DEFINIÇÃO DAS EXPRESSÕES REGULARES (ERs) IMPLEMENTADAS:
+ *
+ * [ER 1] digito      = [0-9]
+ * [ER 2] letra       = [a-zA-Z]
+ * [ER 3] identificador = letra (letra | digito)* (Tam Max: 10)
+ * [ER 4] numero_int  = digito+
+ * [ER 5] numero_real = digito+ . digito+
+ * [ER 6] espaco      = [ \t\n\r]+
+ */
+
 static FILE *arquivo = NULL;
 static int linha_atual = 1;
 static int coluna_atual = 0;
 static int prox_char = ' '; 
 
-// Verifica se o arquivo abriu corretamente
 int inicializar_lexico(char *nome_arquivo) {
     arquivo = fopen(nome_arquivo, "r");
     if (!arquivo) {
@@ -44,6 +53,7 @@ Token proximo_token() {
     t.lexema[0] = '\0';
     t.tipo = TOKEN_EOF;
     
+    // espaco = [ \t\n\r]+
     while (isspace(prox_char)) {
         ler_char();
     }
@@ -57,6 +67,7 @@ Token proximo_token() {
         return t;
     }
 
+    // identificador = letra (letra | digito)*
     if (isalpha(prox_char)) {
         int i = 0;
         while (isalnum(prox_char)) {
@@ -65,12 +76,14 @@ Token proximo_token() {
         }
         t.lexema[i] = '\0';
 
+        // Verificação Semântica: Tamanho máximo 10
         if (strlen(t.lexema) > 10) {
-            printf("ERRO LEXICO (Linha %d, Col %d): Identificador '%s' excede 10 caracteres.\n", t.linha, t.coluna, t.lexema);
+            printf("ERRO LEXICO [COD. 02] (Linha %d, Col %d): Identificador '%s' excede 10 caracteres.\n", t.linha, t.coluna, t.lexema);
             t.tipo = TOKEN_ERRO;
             return t;
         }
 
+        // Verifica Palavras Reservadas (Tabela estática)
         if (strcmp(t.lexema, "inteiro") == 0) t.tipo = TOKEN_INTEIRO;
         else if (strcmp(t.lexema, "real") == 0) t.tipo = TOKEN_REAL;
         else if (strcmp(t.lexema, "caracter") == 0) t.tipo = TOKEN_CARACTER;
@@ -87,13 +100,14 @@ Token proximo_token() {
         return t;
     }
 
+    // numero_int = digito+  OU  numero_real = digito+ . digito+
     if (isdigit(prox_char)) {
         int i = 0;
         while (isdigit(prox_char)) {
             t.lexema[i++] = (char)ler_char();
         }
         if (prox_char == '.') {
-            t.lexema[i++] = (char)ler_char();
+            t.lexema[i++] = (char)ler_char(); // Consome o ponto
             while (isdigit(prox_char)) {
                 t.lexema[i++] = (char)ler_char();
             }
@@ -105,6 +119,7 @@ Token proximo_token() {
         return t;
     }
 
+    // Símbolos Especiais (ERs literais simples)
     char c = (char)ler_char();
     t.lexema[0] = c;
     t.lexema[1] = '\0';
@@ -178,6 +193,7 @@ Token proximo_token() {
 
         default:
             t.tipo = TOKEN_ERRO;
+            printf("ERRO LEXICO [COD. 01] (Linha %d, Col %d): Simbolo invalido '%c'.\n", linha_atual, coluna_atual, c);
             break;
     }
 
