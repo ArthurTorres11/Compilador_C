@@ -13,8 +13,9 @@
  * [ER 4] numero_int  = digito+
  * [ER 5] numero_real = digito+ . digito+
  * [ER 6] espaco      = [ \t\n\r]+
- */
-
+ * [ER 7] comentarios = // ... \n  OU  /* ... */
+    
+ 
 static FILE *arquivo = NULL;
 static int linha_atual = 1;
 static int coluna_atual = 0;
@@ -128,7 +129,41 @@ Token proximo_token() {
         case '+': t.tipo = TOKEN_SOMA; break;
         case '-': t.tipo = TOKEN_SUB; break;
         case '*': t.tipo = TOKEN_MULT; break;
-        case '/': t.tipo = TOKEN_DIV; break;
+        
+        // --- LÓGICA DE COMENTÁRIOS ADICIONADA AQUI ---
+        case '/': 
+            if (prox_char == '/') {
+                // Comentário de linha (//): ignora até o \n
+                ler_char(); // Consome a segunda barra
+                while (prox_char != '\n' && prox_char != EOF) {
+                    ler_char();
+                }
+                return proximo_token(); // Recursão para pegar o próximo token real
+            } 
+            else if (prox_char == '*') {
+                // Comentário de bloco (/* ... */): ignora até */
+                ler_char(); // Consome o asterisco
+                while (prox_char != EOF) {
+                    if (prox_char == '*') {
+                        ler_char();
+                        if (prox_char == '/') {
+                            ler_char(); // Consome a barra final
+                            return proximo_token(); // Comentário fechou, pega próximo token
+                        }
+                    } else {
+                        ler_char();
+                    }
+                }
+                // Se chegou aqui, é EOF sem fechar
+                printf("ERRO LEXICO [COD. 01] (Linha %d, Col %d): Comentario de bloco nao fechado.\n", linha_atual, coluna_atual);
+                t.tipo = TOKEN_ERRO;
+            } 
+            else {
+                t.tipo = TOKEN_DIV; // Divisão normal
+            }
+            break;
+        // ----------------------------------------------
+
         case '(': t.tipo = TOKEN_ABRE_PAR; break;
         case ')': t.tipo = TOKEN_FECHA_PAR; break;
         case ';': t.tipo = TOKEN_PONTO_VIRGULA; break;

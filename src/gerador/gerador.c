@@ -3,7 +3,7 @@
 #include <string.h>
 #include "gerador.h"
 
-#define MAX_CODE 2000 // Tamanho máximo do programa gerado
+#define MAX_CODE 2000 
 
 static Instrucao codigo[MAX_CODE];
 static int pos_codigo = 0;

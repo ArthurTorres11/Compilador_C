@@ -9,6 +9,7 @@
 static Token token_atual;
 static int nivel_profundidade = 0;
 
+//  VISUALIZAÇÃO GRAPHVIZ (DOT) 
 static FILE *f_dot = NULL;
 static int contador_nos = 0;
 static int pais[100];
@@ -20,7 +21,7 @@ void inicializar_dot(char *nome_saida) {
         fprintf(f_dot, "digraph G {\n");
         fprintf(f_dot, "  node [shape=box, style=filled, color=lightblue];\n");
     } else {
-        printf("ERRO: Nao foi possivel criar o arquivo de arvore '%s'.\n", nome_saida);
+        printf("ERRO: Nao foi possivel criar o arquivo de arvore '%s'. Verifique se a pasta existe.\n", nome_saida);
     }
 }
 
@@ -28,7 +29,6 @@ void finalizar_dot() {
     if (f_dot) {
         fprintf(f_dot, "}\n");
         fclose(f_dot);
-        printf("\n[VISUALIZACAO] Arquivo de arvore gerado com sucesso!\n");
     }
 }
 
@@ -47,7 +47,7 @@ void log_dot(const char* label, const char* detalhe) {
     pais[nivel_dot] = meu_id;
 }
 
-// Protótipos 
+//  Protótipos 
 void advance();
 void eat(TipoToken tipo_esperado);
 void proc_programa();
@@ -63,7 +63,6 @@ void proc_expressao(char* res_out, TipoVariavel* tipo_out);
 void proc_termo(char* res_out, TipoVariavel* tipo_out);
 void proc_fator(char* res_out, TipoVariavel* tipo_out);
 void proc_condicao(char* res_out);
-void proc_expressao_relacional(char* res_out);
 
 //  Auxiliares 
 void gerar_temp(char* buffer) { sprintf(buffer, "R%d", novo_registrador()); }
@@ -72,10 +71,9 @@ void advance() { token_atual = proximo_token(); }
 
 void eat(TipoToken tipo_esperado) {
     if (token_atual.tipo == tipo_esperado) {
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
         advance();
     } else {
-        printf("\n>>> ERRO SINTATICO [COD. 10] (Linha %d, Coluna %d) <<<\n", token_atual.linha, token_atual.coluna);
+        printf("\n>>> ERRO SINTATICO [COD. 10] (Linha %d) <<<\n", token_atual.linha);
         printf("Esperado: %s, Encontrado: %s\n", token_para_string(tipo_esperado), token_atual.lexema);
         exit(1);
     }
@@ -83,15 +81,15 @@ void eat(TipoToken tipo_esperado) {
 
 void verifica_profundidade() {
     if (nivel_profundidade > 10) {
-        printf("\n>>> ERRO SINTATICO [COD. 11] (Linha %d): Profundidade maxima de aninhamento (10) excedida. <<<\n", token_atual.linha);
+        printf("\n>>> ERRO SINTATICO [COD. 11] (Linha %d): Profundidade maxima (10) excedida. <<<\n", token_atual.linha);
         exit(1);
     }
 }
 
+//  ESSA ERA A FUNÇÃO QUE FALTAVA 
 void verificar_compatibilidade(TipoVariavel t1, TipoVariavel t2, int linha, char* op) {
     if (t1 != t2) {
-        printf("ERRO SEMANTICO [COD. 22] (Linha %d): Operacao '%s' com tipos incompativeis (%s e %s).\n", 
-               linha, op, tipo_para_string(t1), tipo_para_string(t2));
+        printf("ERRO SEMANTICO [COD. 22] (Linha %d): Operacao '%s' com tipos incompativeis (%s e %s).\n");
         exit(1);
     }
 }
@@ -144,9 +142,9 @@ void proc_declaracao() {
 }
 
 void proc_tipo() {
-    if (token_atual.tipo == TOKEN_INTEIRO) { log_dot("TIPO", "inteiro"); eat(TOKEN_INTEIRO); }
-    else if (token_atual.tipo == TOKEN_REAL) { log_dot("TIPO", "real"); eat(TOKEN_REAL); }
-    else if (token_atual.tipo == TOKEN_CARACTER) { log_dot("TIPO", "caracter"); eat(TOKEN_CARACTER); }
+    if (token_atual.tipo == TOKEN_INTEIRO) { log_dot("TIPO", "inteiro"); advance(); }
+    else if (token_atual.tipo == TOKEN_REAL) { log_dot("TIPO", "real"); advance(); }
+    else if (token_atual.tipo == TOKEN_CARACTER) { log_dot("TIPO", "caracter"); advance(); }
     else { printf("ERRO: Tipo invalido na linha %d\n", token_atual.linha); exit(1); }
 }
 
@@ -184,7 +182,7 @@ void proc_atribuicao() {
     
     if (tipo_var != tipo_expr) {
         if (!(tipo_var == TIPO_VAR_REAL && tipo_expr == TIPO_VAR_INTEIRO)) {
-             printf("ERRO SEMANTICO [COD. 22] (Linha %d): Atribuicao incompativel (%s recebe %s).\n", 
+             printf("ERRO SEMANTICO (Linha %d): Atribuicao incompativel (%s recebe %s).\n", 
                     token_atual.linha, tipo_para_string(tipo_var), tipo_para_string(tipo_expr));
              exit(1);
         }
@@ -276,58 +274,8 @@ void proc_iterativo() {
 }
 
 void proc_condicao(char* res_out) {
-    char reg_esq[100], reg_dir[100], reg_temp[100];
-    
-    if (token_atual.tipo == TOKEN_NAO) {
-        log_dot("OP_LOGICO", "NOT");
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
-        advance();
-        
-        if (token_atual.tipo == TOKEN_ABRE_PAR) {
-            eat(TOKEN_ABRE_PAR);
-            proc_condicao(res_out);
-            eat(TOKEN_FECHA_PAR);
-        } else {
-            proc_expressao_relacional(res_out);
-        }
-        
-        gerar_temp(reg_temp);
-        char r_zero[20]; sprintf(r_zero, "R%d", novo_registrador());
-        gerar_codigo(CMD_LOADI, r_zero, "0", NULL);
-        gerar_codigo(CMD_CMP_IGUAL, reg_temp, res_out, r_zero);
-        strcpy(res_out, reg_temp);
-        return;
-    }
-
-    proc_expressao_relacional(reg_esq);
-
-    while (token_atual.tipo == TOKEN_E || token_atual.tipo == TOKEN_OU) {
-        TipoToken op_logico = token_atual.tipo;
-        log_dot("OP_LOGICO", op_logico == TOKEN_E ? "E" : "OR");
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
-        advance();
-        
-        proc_expressao_relacional(reg_dir);
-        
-        gerar_temp(reg_temp);
-        OpCode op_cmd = (op_logico == TOKEN_E) ? CMD_MULT : CMD_ADD;
-        gerar_codigo(op_cmd, reg_temp, reg_esq, reg_dir);
-        strcpy(reg_esq, reg_temp);
-    }
-    strcpy(res_out, reg_esq);
-}
-
-void proc_expressao_relacional(char* res_out) {
     char reg_esq[100], reg_dir[100];
     TipoVariavel t1, t2;
-    
-    if (token_atual.tipo == TOKEN_ABRE_PAR) {
-        eat(TOKEN_ABRE_PAR);
-        proc_condicao(res_out);
-        eat(TOKEN_FECHA_PAR);
-        return;
-    }
-
     proc_expressao(reg_esq, &t1);
     
     OpCode op = CMD_HALT;
@@ -340,10 +288,9 @@ void proc_expressao_relacional(char* res_out) {
     
     if (op != CMD_HALT) {
         log_dot("OP_REL", token_atual.lexema);
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
         advance();
-        
         proc_expressao(reg_dir, &t2);
+        
         verificar_compatibilidade(t1, t2, token_atual.linha, "RELACIONAL");
         
         gerar_temp(res_out);
@@ -359,11 +306,10 @@ void proc_expressao(char* res_out, TipoVariavel* tipo_out) {
     
     while (token_atual.tipo == TOKEN_SOMA || token_atual.tipo == TOKEN_SUB) {
         log_dot("OP_ARIT", token_atual.lexema);
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
         TipoToken op_token = token_atual.tipo;
         advance();
-        
         proc_termo(reg_dir, &t2);
+        
         verificar_compatibilidade(t1, t2, token_atual.linha, "SOMA/SUB");
         
         gerar_temp(reg_temp);
@@ -382,11 +328,10 @@ void proc_termo(char* res_out, TipoVariavel* tipo_out) {
     
     while (token_atual.tipo == TOKEN_MULT || token_atual.tipo == TOKEN_DIV || token_atual.tipo == TOKEN_RESTO) {
         log_dot("OP_MULT", token_atual.lexema);
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
         TipoToken op_token = token_atual.tipo;
         advance();
-        
         proc_fator(reg_dir, &t2);
+        
         verificar_compatibilidade(t1, t2, token_atual.linha, "MULT/DIV");
         
         gerar_temp(reg_temp);
@@ -401,10 +346,8 @@ void proc_termo(char* res_out, TipoVariavel* tipo_out) {
 
 void proc_fator(char* res_out, TipoVariavel* tipo_out) {
     char reg_temp[100];
-    
     if (token_atual.tipo == TOKEN_NUM_INT) {
         log_dot("NUM_INT", token_atual.lexema);
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
         *tipo_out = TIPO_VAR_INTEIRO;
         gerar_temp(reg_temp);
         gerar_codigo(CMD_LOADI, reg_temp, token_atual.lexema, NULL);
@@ -413,17 +356,7 @@ void proc_fator(char* res_out, TipoVariavel* tipo_out) {
     } 
     else if (token_atual.tipo == TOKEN_NUM_REAL) {
         log_dot("NUM_REAL", token_atual.lexema);
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
         *tipo_out = TIPO_VAR_REAL;
-        gerar_temp(reg_temp);
-        gerar_codigo(CMD_LOADI, reg_temp, token_atual.lexema, NULL);
-        strcpy(res_out, reg_temp);
-        advance();
-    }
-    else if (token_atual.tipo == TOKEN_LITERAL_CHAR) {
-        log_dot("CHAR", token_atual.lexema);
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
-        *tipo_out = TIPO_VAR_CARACTER;
         gerar_temp(reg_temp);
         gerar_codigo(CMD_LOADI, reg_temp, token_atual.lexema, NULL);
         strcpy(res_out, reg_temp);
@@ -431,7 +364,6 @@ void proc_fator(char* res_out, TipoVariavel* tipo_out) {
     }
     else if (token_atual.tipo == TOKEN_ID) {
         log_dot("VAR", token_atual.lexema);
-        printf("[TOKEN] %-15s | Lexema: %s\n", token_para_string(token_atual.tipo), token_atual.lexema);
         verificar_uso_variavel(token_atual.lexema, token_atual.linha);
         *tipo_out = obter_tipo_simbolo(token_atual.lexema);
         gerar_temp(reg_temp);
@@ -440,11 +372,11 @@ void proc_fator(char* res_out, TipoVariavel* tipo_out) {
         advance();
     } 
     else if (token_atual.tipo == TOKEN_ABRE_PAR) {
-        eat(TOKEN_ABRE_PAR);
+        advance();
         proc_expressao(res_out, tipo_out);
         eat(TOKEN_FECHA_PAR);
     } else {
-        printf("ERRO SINTATICO [COD. 10] (Linha %d): Fator invalido.\n", token_atual.linha);
+        printf("ERRO SINTATICO (Linha %d): Fator invalido.\n", token_atual.linha);
         exit(1);
     }
 }
@@ -466,5 +398,7 @@ int analise_sintatica(char *nome_arquivo, char *nome_saida_dot) {
     
     imprimir_tabela_simbolos();
     imprimir_codigo_intermediario();
+    
+    printf("\n[AST] Arvore gerada em: %s\n", nome_saida_dot); 
     return 1;
 }
